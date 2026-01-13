@@ -130,7 +130,7 @@ async function performBackup(isFull = false) {
             } catch (error) {
                 console.error(`Error al realizar backup de ${table}:`, error);
                 if (error instanceof TypeError && error.message.includes('BigInt')) {
-                    console.error('Error de BigInt detectado, asegurate de que los datos esten siendo procesados correctamente');
+                    console.error('Error de BigInt detectado, asegúrate de que los datos estén siendo procesados correctamente');
                 }
             }
         }

@@ -1,6 +1,6 @@
-# Documentacion de Endpoints
+# Documentación de Endpoints
 
-API REST para consultar informacion de la base de datos del servidor.
+API REST para consultar información de la base de datos del servidor.
 
 Base URL: `http://localhost:3001`
 
@@ -19,7 +19,7 @@ Health check del servicio.
 
 ## GET /players
 
-Obtiene el numero de jugadores actualmente en linea.
+Obtiene el número de jugadores actualmente en línea.
 
 **Respuesta exitosa:**
 ```json
@@ -29,13 +29,13 @@ Obtiene el numero de jugadores actualmente en linea.
 ```
 
 **Campos:**
-- `online` (number): Numero de jugadores conectados actualmente
+- `online` (number): Número de jugadores conectados actualmente
 
 ---
 
 ## GET /stats
 
-Obtiene estadisticas generales del servidor.
+Obtiene estadísticas generales del servidor.
 
 **Respuesta exitosa:**
 ```json
@@ -66,18 +66,18 @@ Obtiene estadisticas generales del servidor.
 
 **Campos:**
 - `timestamp` (string): Fecha y hora de la consulta
-- `accounts` (object): Estadisticas de cuentas
+- `accounts` (object): Estadísticas de cuentas
   - `total` (number): Total de cuentas (excluyendo admins)
-  - `activeLastWeek` (number): Cuentas activas en la ultima semana
-- `characters` (object): Estadisticas de personajes
+  - `activeLastWeek` (number): Cuentas activas en la última semana
+- `characters` (object): Estadísticas de personajes
   - `total` (number): Total de personajes (excluyendo borrados y admins)
-  - `activeLast24h` (number): Personajes activos en las ultimas 24 horas
-  - `highestLevel` (number): Nivel base mas alto
+  - `activeLast24h` (number): Personajes activos en las últimas 24 horas
+  - `highestLevel` (number): Nivel base más alto
   - `averageLevel` (number): Nivel base promedio
-  - `maxLevelCount` (number): Cantidad de personajes en el nivel maximo
-- `guilds` (object): Estadisticas de gremios
+  - `maxLevelCount` (number): Cantidad de personajes en el nivel máximo
+- `guilds` (object): Estadísticas de gremios
   - `total` (number): Total de gremios
-- `economy` (object): Estadisticas economicas
+- `economy` (object): Estadísticas económicas
   - `totalZeny` (string): Zeny total en el servidor
   - `bankZeny` (string): Zeny en bancos
   - `averageZenyPerChar` (number): Promedio de zeny por personaje
@@ -114,7 +114,7 @@ Obtiene el ranking de cuentas ordenado por zeny total.
 - `rankings` (array): Lista de cuentas ordenadas por total_zeny descendente
   - `account_id` (number): ID de la cuenta
   - `userid` (string): Nombre de usuario
-  - `logincount` (number): Cantidad de inicios de sesion
+  - `logincount` (number): Cantidad de inicios de sesión
   - `total_zeny` (string): Zeny total (personajes + banco)
   - `total_cards` (string): Total de cartas
   - `total_cards_distinct` (string): Total de cartas distintas
@@ -163,7 +163,7 @@ Obtiene el ranking de personajes ordenado por nivel y experiencia.
 
 ---
 
-## Codigos de Error
+## Códigos de Error
 
 **500 Internal Server Error:**
 ```json

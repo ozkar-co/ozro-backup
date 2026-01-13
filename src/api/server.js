@@ -31,7 +31,7 @@ app.get('/stats', async (req, res) => {
         const totalResult = await query('SELECT COUNT(*) as count FROM login WHERE group_id = 0');
         const totalAccounts = totalResult[0].count;
 
-        // Cuentas activas en la ultima semana
+        // Cuentas activas en la última semana
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
         const formattedDate = weekAgo.toISOString().slice(0, 19).replace('T', ' ');
@@ -51,7 +51,7 @@ app.get('/stats', async (req, res) => {
         `);
         const totalCharacters = totalCharsResult[0].count;
 
-        // Personajes activos en las ultimas 24 horas
+        // Personajes activos en las últimas 24 horas
         const dayAgo = Math.floor(Date.now() / 1000) - (24 * 60 * 60);
         const activeCharsResult = await query(`
             SELECT COUNT(*) as count 
@@ -63,7 +63,7 @@ app.get('/stats', async (req, res) => {
         `, [dayAgo]);
         const activeLast24h = activeCharsResult[0].count;
 
-        // Nivel mas alto
+        // Nivel más alto
         const maxLevelStats = await query(`
             SELECT 
                 c.base_level as maxLevel,
