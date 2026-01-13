@@ -1,20 +1,18 @@
 # Ozro Backup
 
-Sistema de backup y sincronización entre MariaDB y Firestore.
+Sistema de backup automático y API REST para base de datos MariaDB.
 
 ## Características
 
-- API REST para monitoreo y control (HTTPS)
+- API REST para consultar información de la base de datos
 - Backup automático de tablas MariaDB configurables
-- Sincronización de logins entre Firestore y MariaDB
 - Tareas programadas integradas
+- Sin autenticación (datos públicos)
 
 ## Requisitos
 
 - Node.js 18 o superior
 - MariaDB
-- Cuenta de Firebase con Firestore
-- Certificados SSL (opcional)
 
 ## Configuración
 
@@ -29,34 +27,10 @@ npm install
    cp .env.example .env
    ```
    - Configura las variables en `.env`:
-     - Variables de Firebase
      - Variables de MariaDB
-     - Variables de Firebase Admin SDK
-     - Variables de SSL (opcional)
+     - Puerto de la API (por defecto 3001)
 
-3. Configurar Firebase Admin SDK:
-   - Ve a la [Consola de Firebase](https://console.firebase.google.com/)
-   - Selecciona tu proyecto
-   - Ve a Configuración del Proyecto (⚙️)
-   - Ve a la pestaña "Cuentas de servicio"
-   - Selecciona "Firebase Admin SDK"
-   - Haz clic en "Generar nueva clave privada"
-   - Del archivo JSON descargado, copia los valores:
-     - `client_email` a FIREBASE_CLIENT_EMAIL
-     - `private_key` a FIREBASE_PRIVATE_KEY
-
-4. Configurar SSL (opcional pero recomendado):
-   - Generar certificados autofirmados para desarrollo:
-   ```bash
-   mkdir ssl
-   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/private.key -out ssl/certificate.crt -subj "/CN=172.26.0.1"
-   ```
-   - O usar certificados válidos para producción:
-     - Obtener certificados de una CA (Let's Encrypt, etc.)
-     - Colocar los archivos en el directorio `ssl/`
-     - Actualizar rutas en `.env` si es necesario
-
-5. Crear archivo `backup.conf` con las tablas a respaldar:
+3. Crear archivo `backup.conf` con las tablas a respaldar:
 ```
 # Una tabla por línea
 usuarios
@@ -81,18 +55,30 @@ npm run dev
 ```
 src/
   ├── api/           # API REST
-  ├── services/      # Servicios de conexión (MariaDB, Firebase)
-  └── tasks/         # Tareas programadas
-ssl/                 # Certificados SSL
-  ├── private.key    # Llave privada
-  └── certificate.crt # Certificado público
+  ├── services/      # Servicios de conexión (MariaDB)
+  └── tasks/         # Tareas programadas (backup)
+doc/                 # Documentación de endpoints
+backups/             # Archivos de backup generados
 ```
 
 ## API Endpoints
 
+La API escucha en el puerto 3001 (configurable via API_PORT).
+
+### Endpoints disponibles:
+
 - `GET /health` - Health check del servicio
+- `GET /players` - Número de jugadores en línea
+- `GET /stats` - Estadísticas generales del servidor
+- `GET /rankings/accounts` - Ranking de cuentas por zeny
+- `GET /rankings/characters` - Ranking de personajes por nivel
+
+Ver documentación completa en: [doc/endpoints.md](doc/endpoints.md)
 
 ## Backups
 
-Los backups se realizan automáticamente a las 3 AM para todas las tablas listadas en `backup.conf`.
-Los archivos de backup se guardan en el directorio `backups/` en formato JSON. 
+Los backups se realizan automáticamente:
+- **Backup diario**: 3 AM (tablas configuradas en backup.conf)
+- **Backup completo**: Domingos 4 AM (todas las tablas)
+
+Los archivos de backup se guardan en el directorio `backups/` en formato JSON y SQL. 

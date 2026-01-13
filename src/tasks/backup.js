@@ -125,12 +125,12 @@ async function performBackup(isFull = false) {
                 // Añadir al SQL combinado
                 combinedSQL += `-- Tabla: ${table}\n${sqlInsert}\n`;
                 
-                console.log(`✅ Backup completado para ${table} (JSON y SQL)`);
+                console.log(`Backup completado para ${table} (JSON y SQL)`);
                 backupCount++;
             } catch (error) {
                 console.error(`Error al realizar backup de ${table}:`, error);
                 if (error instanceof TypeError && error.message.includes('BigInt')) {
-                    console.error('💡 Error de BigInt detectado, asegúrate de que los datos estén siendo procesados correctamente');
+                    console.error('Error de BigInt detectado, asegúrate de que los datos estén siendo procesados correctamente');
                 }
             }
         }
@@ -142,7 +142,7 @@ async function performBackup(isFull = false) {
         }
         
         const backupType = isFull ? 'completo' : 'normal';
-        console.log(`📦 Backup ${backupType} completado en ${backupDir} (${backupCount} tablas)`);
+        console.log(`Backup ${backupType} completado en ${backupDir} (${backupCount} tablas)`);
         return backupCount;
     } catch (error) {
         console.error('Error al realizar backup:', error);
@@ -152,26 +152,26 @@ async function performBackup(isFull = false) {
 
 export async function initializeBackupTask() {
     // Realizar backup completo inicial
-    console.log('🔄 Iniciando backup completo inicial...');
+    console.log('Iniciando backup completo inicial...');
     const tablesBackedUp = await performBackup(true);
     
     if (tablesBackedUp > 0) {
-        console.log('✨ Backup inicial completado exitosamente');
+        console.log('Backup inicial completado exitosamente');
     } else {
-        console.warn('⚠️ No se pudo realizar el backup inicial');
+        console.warn('No se pudo realizar el backup inicial');
     }
     
     // Programar backup diario (3 AM)
     cron.schedule('0 3 * * *', async () => {
-        console.log('🔄 Iniciando proceso de backup diario...');
+        console.log('Iniciando proceso de backup diario...');
         await performBackup(false);
     });
     
     // Programar backup completo semanal (Domingo 4 AM)
     cron.schedule('0 4 * * 0', async () => {
-        console.log('🔄 Iniciando proceso de backup completo semanal...');
+        console.log('Iniciando proceso de backup completo semanal...');
         await performBackup(true);
     });
     
-    console.log('📅 Tareas de backup programadas: diario (3 AM) y completo (Domingo 4 AM)');
+    console.log('Tareas de backup programadas: diario (3 AM) y completo (Domingo 4 AM)');
 } 
