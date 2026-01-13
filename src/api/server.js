@@ -6,6 +6,14 @@ const port = process.env.API_PORT || 3001;
 
 app.use(express.json());
 
+// Custom JSON replacer to handle BigInt serialization
+app.set('json replacer', (key, value) => {
+    if (typeof value === 'bigint') {
+        return Number(value);
+    }
+    return value;
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ status: 'OK' });
