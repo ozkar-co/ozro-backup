@@ -14,7 +14,7 @@ export async function initializeMariaDB() {
 
     try {
         const connection = await pool.getConnection();
-        console.log('📦 Conexión a MariaDB establecida');
+        console.log('Conexion a MariaDB establecida');
         connection.release();
     } catch (error) {
         console.error('Error al conectar con MariaDB:', error);

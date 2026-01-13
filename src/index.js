@@ -1,22 +1,20 @@
 import 'dotenv/config';
 import { startAPI } from './api/server.js';
-import { initializeFirebase } from './services/firebase.js';
 import { initializeMariaDB } from './services/mariadb.js';
-import { initializeTasks } from './tasks/index.js';
+import { initializeBackupTask } from './tasks/backup.js';
 
 async function main() {
     try {
-        // Inicializar conexiones a bases de datos
+        // Inicializar conexion a base de datos
         await initializeMariaDB();
-        await initializeFirebase();
 
-        // Iniciar tareas programadas
-        await initializeTasks();
+        // Iniciar tarea programada de backup
+        await initializeBackupTask();
 
         // Iniciar API
         await startAPI();
 
-        console.log('🚀 Todos los servicios iniciados correctamente');
+        console.log('Todos los servicios iniciados correctamente');
     } catch (error) {
         console.error('Error al iniciar los servicios:', error);
         process.exit(1);
