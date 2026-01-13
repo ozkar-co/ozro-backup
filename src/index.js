@@ -5,7 +5,7 @@ import { initializeBackupTask } from './tasks/backup.js';
 
 async function main() {
     try {
-        // Inicializar conexion a base de datos
+        // Inicializar conexión a base de datos
         await initializeMariaDB();
 
         // Iniciar tarea programada de backup

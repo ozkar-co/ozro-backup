@@ -1,20 +1,20 @@
 # Ozro Backup
 
-Sistema de backup automatico y API REST para base de datos MariaDB.
+Sistema de backup automático y API REST para base de datos MariaDB.
 
-## Caracteristicas
+## Características
 
-- API REST para consultar informacion de la base de datos
-- Backup automatico de tablas MariaDB configurables
+- API REST para consultar información de la base de datos
+- Backup automático de tablas MariaDB configurables
 - Tareas programadas integradas
-- Sin autenticacion (datos publicos)
+- Sin autenticación (datos públicos)
 
 ## Requisitos
 
 - Node.js 18 o superior
 - MariaDB
 
-## Configuracion
+## Configuración
 
 1. Instalar dependencias:
 ```bash
@@ -32,7 +32,7 @@ npm install
 
 3. Crear archivo `backup.conf` con las tablas a respaldar:
 ```
-# Una tabla por linea
+# Una tabla por línea
 usuarios
 productos
 ventas
@@ -45,7 +45,7 @@ Iniciar el servidor:
 npm start
 ```
 
-Para desarrollo con recarga automatica:
+Para desarrollo con recarga automática:
 ```bash
 npm run dev
 ```
@@ -55,9 +55,9 @@ npm run dev
 ```
 src/
   ├── api/           # API REST
-  ├── services/      # Servicios de conexion (MariaDB)
+  ├── services/      # Servicios de conexión (MariaDB)
   └── tasks/         # Tareas programadas (backup)
-doc/                 # Documentacion de endpoints
+doc/                 # Documentación de endpoints
 backups/             # Archivos de backup generados
 ```
 
@@ -68,16 +68,16 @@ La API escucha en el puerto 3001 (configurable via API_PORT).
 ### Endpoints disponibles:
 
 - `GET /health` - Health check del servicio
-- `GET /players` - Numero de jugadores en linea
-- `GET /stats` - Estadisticas generales del servidor
+- `GET /players` - Número de jugadores en línea
+- `GET /stats` - Estadísticas generales del servidor
 - `GET /rankings/accounts` - Ranking de cuentas por zeny
 - `GET /rankings/characters` - Ranking de personajes por nivel
 
-Ver documentacion completa en: [doc/endpoints.md](doc/endpoints.md)
+Ver documentación completa en: [doc/endpoints.md](doc/endpoints.md)
 
 ## Backups
 
-Los backups se realizan automaticamente:
+Los backups se realizan automáticamente:
 - **Backup diario**: 3 AM (tablas configuradas en backup.conf)
 - **Backup completo**: Domingos 4 AM (todas las tablas)
 
