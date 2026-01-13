@@ -179,8 +179,8 @@ app.get('/stats', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error al obtener estadisticas:', error);
-        res.status(500).json({ error: 'Error al obtener estadisticas' });
+        console.error('Error al obtener estadísticas:', error);
+        res.status(500).json({ error: 'Error al obtener estadísticas' });
     }
 });
 
