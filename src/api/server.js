@@ -3,6 +3,7 @@ import cors from 'cors';
 import net from 'net';
 import { query } from '../services/mariadb.js';
 
+const os = require('os');
 const app = express();
 const port = process.env.API_PORT || 3001;
 
@@ -42,8 +43,9 @@ app.get('/health', (req, res) => {
 
 // Get system uptime
 app.get('/uptime', (req, res) => {
-    const uptimeSeconds = process.uptime();
-    const uptimeMillis = process.uptime() * 1000;
+
+    const uptimeSeconds = os.uptime();
+    const uptimeMillis = uptimeSeconds * 1000;
     
     const days = Math.floor(uptimeSeconds / (24 * 60 * 60));
     const hours = Math.floor((uptimeSeconds % (24 * 60 * 60)) / (60 * 60));
