@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import net from 'net';
 import { query } from '../services/mariadb.js';
 
 const app = express();
@@ -38,6 +39,71 @@ app.set('json replacer', (key, value) => {
 app.get('/health', (req, res) => {
     res.json({ status: 'OK' });
 });
+
+// Get system uptime
+app.get('/uptime', (req, res) => {
+    const uptimeSeconds = process.uptime();
+    const uptimeMillis = process.uptime() * 1000;
+    
+    const days = Math.floor(uptimeSeconds / (24 * 60 * 60));
+    const hours = Math.floor((uptimeSeconds % (24 * 60 * 60)) / (60 * 60));
+    const minutes = Math.floor((uptimeSeconds % (60 * 60)) / 60);
+    const seconds = Math.floor(uptimeSeconds % 60);
+    
+    res.json({
+        uptime: {
+            seconds: uptimeSeconds,
+            milliseconds: uptimeMillis,
+            formatted: `${days}d ${hours}h ${minutes}m ${seconds}s`
+        }
+    });
+});
+
+// Check service status
+function checkService(host, port) {
+    return new Promise((resolve) => {
+        const socket = net.createConnection({ host, port, timeout: 3000 });
+        
+        socket.on('connect', () => {
+            socket.destroy();
+            resolve({ status: 'online' });
+        });
+        
+        socket.on('error', () => {
+            resolve({ status: 'offline' });
+        });
+        
+        socket.on('timeout', () => {
+            socket.destroy();
+            resolve({ status: 'offline' });
+        });
+    });
+}
+
+app.get('/status', async (req, res) => {
+    try {
+        const services = {
+            'login': 6900,
+            'char': 6121,
+            'map': 5121
+        };
+        
+        const statusResults = {};
+        
+        for (const [serviceName, port] of Object.entries(services)) {
+            statusResults[serviceName] = await checkService('localhost', port);
+        }
+        
+        res.json({
+            timestamp: new Date().toISOString(),
+            services: statusResults
+        });
+    } catch (error) {
+        console.error('Error al verificar estado de servicios:', error);
+        res.status(500).json({ error: 'Error al verificar estado de servicios' });
+    }
+});
+
 
 // Get online players count
 app.get('/players', async (req, res) => {

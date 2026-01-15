@@ -17,6 +17,63 @@ Health check del servicio.
 
 ---
 
+## GET /uptime
+
+Obtiene el tiempo de actividad de la API.
+
+**Respuesta exitosa:**
+```json
+{
+  "uptime": {
+    "seconds": 3661.234,
+    "milliseconds": 3661234.567,
+    "formatted": "0d 1h 1m 1s"
+  }
+}
+```
+
+**Campos:**
+- `uptime` (object): Información del tiempo de actividad
+  - `seconds` (number): Tiempo de actividad en segundos
+  - `milliseconds` (number): Tiempo de actividad en milisegundos
+  - `formatted` (string): Formato legible (días, horas, minutos, segundos)
+
+---
+
+## GET /status
+
+Verifica el estado de los servicios de game server (login, char, map).
+
+**Respuesta exitosa:**
+```json
+{
+  "timestamp": "2026-01-15T10:30:45.123Z",
+  "services": {
+    "login": {
+      "status": "online"
+    },
+    "char": {
+      "status": "online"
+    },
+    "map": {
+      "status": "online"
+    }
+  }
+}
+```
+
+**Campos:**
+- `timestamp` (string): Fecha y hora de la consulta
+- `services` (object): Estado de los servicios
+  - `login` (object): Estado del servicio de login (puerto 6900)
+    - `status` (string): `online` u `offline`
+  - `char` (object): Estado del servicio de character (puerto 6121)
+    - `status` (string): `online` u `offline`
+  - `map` (object): Estado del servicio de map (puerto 5121)
+    - `status` (string): `online` u `offline`
+
+---
+
 ## GET /players
 
 Obtiene el número de jugadores actualmente en línea.
