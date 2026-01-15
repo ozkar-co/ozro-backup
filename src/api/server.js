@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import net from 'net';
 import { query } from '../services/mariadb.js';
+import os from 'os';
 
-const os = require('os');
 const app = express();
 const port = process.env.API_PORT || 3001;
 
