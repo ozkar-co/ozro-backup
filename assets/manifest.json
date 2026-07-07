@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-07T23:14:15.129Z",
+  "generatedAt": "2026-07-07T23:38:11.767Z",
   "items": {
     "icons": {
       "pages": [
@@ -86,9 +86,9 @@
           "page": 0,
           "image": "mobs/sprites/atlas_0.webp",
           "mapping": "mobs/sprites/atlas_0.json",
-          "count": 2443,
-          "width": 3980,
-          "height": 3969
+          "count": 2523,
+          "width": 4049,
+          "height": 4031
         }
       ]
     }

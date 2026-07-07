@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-07T23:14:15.129Z",
+  "generatedAt": "2026-07-07T23:38:11.767Z",
   "grfStack": [
     "ozro.grf",
     "gefenia.grf",
@@ -3893,6 +3893,33 @@
           "aegisName": "S_DUMMY_LARGE_R30"
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "file": "1285.gif",
+        "model": "aguardian90_8",
+        "covered": 4
+      },
+      {
+        "file": "1286.gif",
+        "model": "kguardian90_7",
+        "covered": 4
+      },
+      {
+        "file": "1287.gif",
+        "model": "sguardian90_9",
+        "covered": 1
+      },
+      {
+        "file": "1288.gif",
+        "model": "empelium90_0",
+        "covered": 2
+      },
+      {
+        "file": "1324.gif",
+        "model": "treasurebox_2",
+        "covered": 69
+      }
+    ]
   }
 }
