@@ -191,10 +191,7 @@ export async function searchItems(params) {
     const total = Number(countRows[0].total);
 
     const rows = await query(
-        `SELECT i.id, i.name_aegis, i.name_english, i.type, i.subtype, i.attack,
-                i.magic_attack, i.defense, i.weight, i.price_buy, i.price_sell,
-                i.slots, i.equip_level_min, i.equip_level_max
-         FROM ${fromSql}
+        `SELECT i.* FROM ${fromSql}
          ${whereClause}
          ORDER BY i.name_english ASC
          LIMIT ? OFFSET ?`,
@@ -205,7 +202,7 @@ export async function searchItems(params) {
         total,
         page,
         limit,
-        results: rows.map(mapItemSummary)
+        results: rows.map(mapItemDetail)
     };
 }
 

@@ -98,6 +98,41 @@ async function resolveDropItems(drops) {
     });
 }
 
+function mapMobDetailFromRow(row, drops = []) {
+    return {
+        ...mapMobSummary(row),
+        str: row.str,
+        agi: row.agi,
+        vit: row.vit,
+        int: row.int,
+        dex: row.dex,
+        luk: row.luk,
+        walkSpeed: row.walk_speed,
+        attackDelay: row.attack_delay,
+        skillRange: row.skill_range,
+        chaseRange: row.chase_range,
+        ai: row.ai,
+        modes: mapMobModes(row),
+        drops
+    };
+}
+
+async function attachDropsToMobRows(rows) {
+    if (rows.length === 0) return [];
+
+    const dropsByMob = rows.map((row) => extractDrops(row));
+    const flatDrops = dropsByMob.flat();
+    const resolvedFlat = await resolveDropItems(flatDrops);
+
+    let offset = 0;
+    return rows.map((row, index) => {
+        const count = dropsByMob[index].length;
+        const drops = resolvedFlat.slice(offset, offset + count);
+        offset += count;
+        return mapMobDetailFromRow(row, drops);
+    });
+}
+
 function buildMobFilters(params) {
     const conditions = [];
     const values = [];
@@ -197,22 +232,20 @@ export async function searchMobs(params) {
     const total = Number(countRows[0].total);
 
     const rows = await query(
-        `SELECT m.id, m.name_aegis, m.name_english, m.name_japanese, m.level, m.hp, m.sp,
-                m.base_exp, m.job_exp, m.mvp_exp, m.attack, m.attack2, m.defense,
-                m.magic_defense, m.attack_range, m.element, m.element_level, m.race,
-                m.size, m.mode_mvp, m.class
-         FROM ${fromSql}
+        `SELECT m.* FROM ${fromSql}
          ${whereClause}
          ORDER BY m.name_english ASC
          LIMIT ? OFFSET ?`,
         [...values, limit, offset]
     );
 
+    const results = await attachDropsToMobRows(rows);
+
     return {
         total,
         page,
         limit,
-        results: rows.map(mapMobSummary)
+        results
     };
 }
 
@@ -225,23 +258,7 @@ export async function getMobById(id) {
 
     const row = rows[0];
     const drops = await resolveDropItems(extractDrops(row));
-
-    return {
-        ...mapMobSummary(row),
-        str: row.str,
-        agi: row.agi,
-        vit: row.vit,
-        int: row.int,
-        dex: row.dex,
-        luk: row.luk,
-        walkSpeed: row.walk_speed,
-        attackDelay: row.attack_delay,
-        skillRange: row.skill_range,
-        chaseRange: row.chase_range,
-        ai: row.ai,
-        modes: mapMobModes(row),
-        drops
-    };
+    return mapMobDetailFromRow(row, drops);
 }
 
 export async function getMobMeta() {
@@ -264,17 +281,27 @@ export async function getMobMeta() {
 }
 
 export async function getMobsDroppingItem(itemAegis) {
-    const dropMatch = mobDropMatchSql('m', itemAegis);
+    const dropColumns = mobDropColumns();
+    const rateCase = dropColumns.map((col) => `WHEN m.${col.item} = ? THEN m.${col.rate}`).join(' ');
+    const typeCase = dropColumns.map((col) => `WHEN m.${col.item} = ? THEN '${col.type}'`).join(' ');
+    const caseParams = dropColumns.flatMap(() => [itemAegis]);
+
     const rows = await query(
-        `SELECT m.id, m.name_english, m.name_aegis, m.level
+        `SELECT m.id, m.name_english, m.name_aegis, m.level,
+                CASE ${rateCase} END AS rate,
+                CASE ${typeCase} END AS drop_type
          FROM ${effectiveMobsSql('m')}
-         WHERE ${dropMatch}`,
-        mobDropMatchParams(itemAegis)
+         WHERE ${mobDropMatchSql('m')}
+         ORDER BY rate DESC, m.level ASC, m.name_english ASC`,
+        [...caseParams, ...mobDropMatchParams(itemAegis)]
     );
     return rows.map((row) => ({
         id: row.id,
         name: row.name_english,
         nameAegis: row.name_aegis,
-        level: row.level
+        level: row.level,
+        rate: row.rate ?? 0,
+        dropType: row.drop_type || 'normal',
+        chancePercent: row.rate != null ? (Math.min(row.rate, 10000) / 100) : null
     }));
 }
