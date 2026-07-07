@@ -284,7 +284,9 @@ export async function getMobsDroppingItem(itemAegis) {
     const dropColumns = mobDropColumns();
     const rateCase = dropColumns.map((col) => `WHEN m.${col.item} = ? THEN m.${col.rate}`).join(' ');
     const typeCase = dropColumns.map((col) => `WHEN m.${col.item} = ? THEN '${col.type}'`).join(' ');
-    const caseParams = dropColumns.flatMap(() => [itemAegis]);
+    const rateParams = dropColumns.map(() => itemAegis);
+    const typeParams = dropColumns.map(() => itemAegis);
+    const whereParams = mobDropMatchParams(itemAegis);
 
     const rows = await query(
         `SELECT m.id, m.name_english, m.name_aegis, m.level,
@@ -293,7 +295,7 @@ export async function getMobsDroppingItem(itemAegis) {
          FROM ${effectiveMobsSql('m')}
          WHERE ${mobDropMatchSql('m')}
          ORDER BY rate DESC, m.level ASC, m.name_english ASC`,
-        [...caseParams, ...mobDropMatchParams(itemAegis)]
+        [...rateParams, ...typeParams, ...whereParams]
     );
     return rows.map((row) => ({
         id: row.id,
