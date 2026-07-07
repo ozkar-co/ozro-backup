@@ -5,6 +5,7 @@ import { query } from '../services/mariadb.js';
 import os from 'os';
 import mobsRouter from './routes/mobs.js';
 import itemsRouter from './routes/items.js';
+import { BANK_VAULT_KEY, bankVaultValueSql, cardExistsSql } from './services/gameDb.js';
 
 const app = express();
 const port = process.env.API_PORT || 3001;
@@ -223,12 +224,14 @@ app.get('/stats', async (req, res) => {
 
         const bankZenyResult = await query(`
             SELECT 
-                a.account_id,
-                CAST(a.bank_vault AS CHAR) as bank_vault
-            FROM account_data a
-            JOIN login l ON a.account_id = l.account_id
-            WHERE l.group_id = 0
-        `);
+                ar.account_id,
+                CAST(ar.value AS CHAR) as bank_vault
+            FROM acc_reg_num ar
+            JOIN login l ON ar.account_id = l.account_id
+            WHERE ar.\`key\` = ?
+            AND ar.\`index\` = 0
+            AND l.group_id = 0
+        `, [BANK_VAULT_KEY]);
 
         const bankZenyMap = new Map();
         let totalBankZeny = BigInt(0);
@@ -317,6 +320,7 @@ app.get('/rankings/accounts', async (req, res) => {
             4093, 4054, 4047
         ];
         const bossCardsStr = bossCardIds.join(',');
+        const cardCheck = cardExistsSql('ai.item_id');
 
         const rankings = await query(`
             WITH AccountItems AS (
@@ -364,20 +368,20 @@ app.get('/rankings/accounts', async (req, res) => {
                         FROM \`char\` c
                         WHERE c.account_id = l.account_id
                         AND c.delete_date = 0
-                    ) + COALESCE(ad.bank_vault, 0) AS CHAR) as total_zeny,
+                    ) + ${bankVaultValueSql('l.account_id')} AS CHAR) as total_zeny,
                     -- Total de cartas
                     CAST((
                         SELECT COALESCE(SUM(amount), 0)
                         FROM AccountItems ai
                         WHERE ai.account_id = l.account_id
-                        AND EXISTS (SELECT 1 FROM item_db WHERE id = ai.item_id AND type = 6)
+                        AND ${cardCheck}
                     ) AS CHAR) as total_cards,
                     -- Total de cartas distintas
                     CAST((
                         SELECT COUNT(DISTINCT ai.item_id)
                         FROM AccountItems ai
                         WHERE ai.account_id = l.account_id
-                        AND EXISTS (SELECT 1 FROM item_db WHERE id = ai.item_id AND type = 6)
+                        AND ${cardCheck}
                     ) AS CHAR) as total_cards_distinct,
                     -- Total de cartas MVP
                     CAST((
@@ -401,7 +405,6 @@ app.get('/rankings/accounts', async (req, res) => {
                         AND ai.item_id = 6024
                     ) AS CHAR) as total_diamonds
                 FROM login l
-                LEFT JOIN account_data ad ON l.account_id = ad.account_id
                 WHERE l.group_id != 99
             )
             SELECT 

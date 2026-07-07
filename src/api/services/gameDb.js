@@ -166,6 +166,27 @@ export function effectiveItemsSql(alias = 'i') {
     return mergedTableSql(TABLES.ITEM, TABLES.ITEM2, alias);
 }
 
+/** rAthena stores account bank zeny in acc_reg_num, not account_data (Hercules). */
+export const BANK_VAULT_KEY = '#BANKVAULT';
+
+export function bankVaultValueSql(accountIdExpr) {
+    return `COALESCE((
+        SELECT ar.value FROM acc_reg_num ar
+        WHERE ar.account_id = ${accountIdExpr}
+        AND ar.\`key\` = '${BANK_VAULT_KEY}'
+        AND ar.\`index\` = 0
+        LIMIT 1
+    ), 0)`;
+}
+
+/** Card items in renewal item_db use type = 'Card' (not numeric type = 6). */
+export function cardExistsSql(itemIdExpr) {
+    if (!itemDataAvailable) {
+        return '0 = 1';
+    }
+    return `EXISTS (SELECT 1 FROM ${effectiveItemsSql('cit')} WHERE cit.id = ${itemIdExpr} AND cit.type = 'Card')`;
+}
+
 export function mobDropColumns() {
     const columns = [];
     for (let n = 1; n <= NORMAL_DROP_COUNT; n++) {
