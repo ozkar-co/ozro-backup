@@ -2,7 +2,7 @@
 
 API REST para consultar información de la base de datos del servidor.
 
-Base URL: `http://localhost:3001`
+Base URL: `http://localhost:3001` (producción: `https://ozro-api.ozkr.net`)
 
 ## GET /health
 
@@ -217,6 +217,156 @@ Obtiene el ranking de personajes ordenado por nivel y experiencia.
   - `base_exp` (number): Experiencia base total acumulada
   - `job_exp` (string): Experiencia de trabajo
   - `fame` (number): Puntos de fama
+
+---
+
+## GET /mobs
+
+Búsqueda de monstruos con filtros. Usa tablas renewal (`mob_db_re` + `mob_db2_re`).
+
+**Query params (todos opcionales):**
+
+| Param | Descripción |
+|-------|-------------|
+| `q` | Nombre o ID |
+| `element` | Elementos separados por coma (`Fire,Water`) |
+| `race` | Razas separadas por coma (`Brute,Demon`) |
+| `size` | Tamaños (`Small,Medium,Large`) |
+| `levelMin` / `levelMax` | Rango de nivel |
+| `baseExpMin` / `baseExpMax` | Rango de base exp |
+| `jobExpMin` / `jobExpMax` | Rango de job exp |
+| `attackRange` | Rango de ataque |
+| `mvp` | `true` o `false` |
+| `page` | Página (default: 1) |
+| `limit` | Resultados por página (default: 20, max: 100) |
+
+**Ejemplo:** `GET /mobs?q=poring&element=Neutral&mvp=false&page=1&limit=20`
+
+**Respuesta exitosa:**
+```json
+{
+  "total": 1,
+  "page": 1,
+  "limit": 20,
+  "results": [
+    {
+      "id": 1002,
+      "name": "Poring",
+      "nameAegis": "PORING",
+      "level": 1,
+      "element": "Neutral",
+      "race": "Plant",
+      "size": "Medium",
+      "baseExp": 2,
+      "jobExp": 1,
+      "isMvp": false
+    }
+  ]
+}
+```
+
+---
+
+## GET /mobs/meta
+
+Opciones de filtro disponibles en la base de datos.
+
+**Respuesta exitosa:**
+```json
+{
+  "elements": ["Fire", "Neutral", "Water"],
+  "races": ["Brute", "Plant"],
+  "sizes": ["Medium", "Small"],
+  "defaults": {
+    "elements": ["Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Shadow", "Ghost", "Undead"],
+    "races": ["Formless", "Undead", "Brute", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon"],
+    "sizes": ["Small", "Medium", "Large"]
+  }
+}
+```
+
+---
+
+## GET /mobs/:id
+
+Detalle de un monstruo con stats, modos y drops resueltos contra `item_db_re`.
+
+**Respuesta exitosa:** objeto con campos del listado más `str`, `agi`, `vit`, `int`, `dex`, `luk`, `modes`, `drops`.
+
+**404:** monstruo no encontrado.
+
+**Nota:** el filtro `hasSpawn` (ocultar monstruos sin ubicación de spawn) queda pendiente hasta importar datos de spawn.
+
+---
+
+## GET /items
+
+Búsqueda de objetos con filtros. Usa tablas renewal (`item_db_re` + `item_db2_re`).
+
+**Query params (todos opcionales):**
+
+| Param | Descripción |
+|-------|-------------|
+| `q` | Nombre o ID |
+| `type` | Tipos separados por coma (`Weapon,Armor,Card`) |
+| `class` | Clases (`normal,upper,third,fourth`) |
+| `jobs` | Jobs separados por coma (`knight,mage,archer`) |
+| `jobsStrict` | `true` = no incluir items con `job_all` |
+| `script` | Keyword en columna `script` |
+| `slots` | Slots separados por coma (`0,1,2,3,4`) |
+| `hasDrop` | `true` = solo items que algún mob dropea; `false` = sin drop |
+| `page` | Página (default: 1) |
+| `limit` | Resultados por página (default: 20, max: 100) |
+
+**Ejemplo:** `GET /items?type=Weapon&jobs=knight&hasDrop=true&slots=2,3`
+
+**Respuesta exitosa:**
+```json
+{
+  "total": 5,
+  "page": 1,
+  "limit": 20,
+  "results": [
+    {
+      "id": 1101,
+      "name": "Sword",
+      "nameAegis": "Sword",
+      "type": "Weapon",
+      "subtype": "1hSword",
+      "attack": 25,
+      "slots": 3
+    }
+  ]
+}
+```
+
+**Nota:** filtro por descripción de item no disponible en v1 (no está en `item_db_re`).
+
+---
+
+## GET /items/meta
+
+Opciones de filtro para objetos.
+
+**Respuesta exitosa:**
+```json
+{
+  "types": ["Armor", "Weapon", "Card"],
+  "classes": ["normal", "upper", "baby", "third", "third_upper", "third_baby", "fourth"],
+  "jobs": ["novice", "swordman", "mage", "knight"],
+  "defaults": {
+    "types": ["Healing", "Usable", "Etc", "Armor", "Weapon", "Card"]
+  }
+}
+```
+
+---
+
+## GET /items/:id
+
+Detalle de un objeto con jobs, clases, ubicaciones de equip, scripts y lista `droppedBy` (mobs que lo dropean).
+
+**404:** objeto no encontrado.
 
 ---
 

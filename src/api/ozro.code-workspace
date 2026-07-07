@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../rathena"
+		},
+		{
+			"name": "ozro-backup",
+			"path": "../.."
+		},
+		{
+			"name": "ozro-site",
+			"path": "../../../ozro-site"
+		}
+	],
+	"settings": {}
+}

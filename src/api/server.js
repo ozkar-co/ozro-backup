@@ -3,14 +3,24 @@ import cors from 'cors';
 import net from 'net';
 import { query } from '../services/mariadb.js';
 import os from 'os';
+import mobsRouter from './routes/mobs.js';
+import itemsRouter from './routes/items.js';
 
 const app = express();
 const port = process.env.API_PORT || 3001;
 
 // Configurar CORS
-const allowedOrigins = process.env.CORS_ORIGINS 
-    ? process.env.CORS_ORIGINS.split(',')
-    : ['https://ozro-api.ozkar.co', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'https://oz-ragnarok.web.app'];
+const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
+    : [
+        'https://ozro-api.ozkr.net',
+        'https://ozkr.net',
+        'https://www.ozkr.net',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:5173',
+        'https://oz-ragnarok.web.app'
+    ];
 
 const corsOptions = {
     origin: function(origin, callback) {
@@ -27,6 +37,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+app.use('/mobs', mobsRouter);
+app.use('/items', itemsRouter);
 
 // Custom JSON replacer to handle BigInt serialization
 app.set('json replacer', (key, value) => {

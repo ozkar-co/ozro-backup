@@ -72,6 +72,12 @@ La API escucha en el puerto 3001 (configurable via API_PORT).
 - `GET /stats` - Estadísticas generales del servidor
 - `GET /rankings/accounts` - Ranking de cuentas por zeny
 - `GET /rankings/characters` - Ranking de personajes por nivel
+- `GET /mobs` - Búsqueda de monstruos con filtros
+- `GET /mobs/:id` - Detalle de monstruo
+- `GET /mobs/meta` - Opciones de filtro de monstruos
+- `GET /items` - Búsqueda de objetos con filtros
+- `GET /items/:id` - Detalle de objeto
+- `GET /items/meta` - Opciones de filtro de objetos
 
 Ver documentación completa en: [doc/endpoints.md](doc/endpoints.md)
 
