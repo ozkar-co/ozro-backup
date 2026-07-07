@@ -3,18 +3,12 @@ import { getItemById, getItemMeta, searchItems } from '../services/itemQuery.js'
 import {
     isItemDataAvailable,
     isMobDataAvailable,
+    itemUnavailableError,
     mobUnavailableError,
     parseBool
 } from '../services/gameDb.js';
 
 const router = Router();
-
-function itemUnavailableError() {
-    return {
-        error: 'Datos de objetos no disponibles',
-        hint: 'Importa item_db_re en MariaDB: mysql -u USER -p rathena < rathena/sql-files/item_db_re.sql'
-    };
-}
 
 router.use((req, res, next) => {
     if (!isItemDataAvailable()) {

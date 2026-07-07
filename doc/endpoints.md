@@ -289,7 +289,7 @@ Opciones de filtro disponibles en la base de datos.
 
 ## GET /mobs/:id
 
-Detalle de un monstruo con stats, modos y drops resueltos contra `item_db_re`.
+Detalle de un monstruo con stats, modos y drops resueltos contra `item_db_re_*`.
 
 **Respuesta exitosa:** objeto con campos del listado más `str`, `agi`, `vit`, `int`, `dex`, `luk`, `modes`, `drops`.
 
@@ -301,7 +301,7 @@ Detalle de un monstruo con stats, modos y drops resueltos contra `item_db_re`.
 
 ## GET /items
 
-Búsqueda de objetos con filtros. Usa tablas renewal (`item_db_re` + `item_db2_re`).
+Búsqueda de objetos con filtros. Usa tablas renewal unidas (`item_db_re_usable` + `item_db_re_equip` + `item_db_re_etc`, más `item_db2_re` si existe).
 
 **Query params (todos opcionales):**
 
@@ -340,7 +340,7 @@ Búsqueda de objetos con filtros. Usa tablas renewal (`item_db_re` + `item_db2_r
 }
 ```
 
-**Nota:** filtro por descripción de item no disponible en v1 (no está en `item_db_re`).
+**Nota:** filtro por descripción de item no disponible en v1 (no está en las tablas `item_db_re_*`).
 
 ---
 

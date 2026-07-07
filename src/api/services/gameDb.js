@@ -3,7 +3,8 @@ import { query } from '../../services/mariadb.js';
 export const TABLES = {
     MOB: null,
     MOB2: null,
-    ITEM: null,
+    /** Base item tables: split (item_db_re_usable/equip/etc) or monolithic item_db_re */
+    ITEM_BASES: [],
     ITEM2: null
 };
 
@@ -79,8 +80,10 @@ const MVP_DROP_COUNT = 3;
 
 const MOB_TABLE_CANDIDATES = ['mob_db_re', 'mob_db'];
 const MOB2_TABLE_CANDIDATES = ['mob_db2_re', 'mob_db2'];
-const ITEM_TABLE_CANDIDATES = ['item_db_re', 'item_db'];
 const ITEM2_TABLE_CANDIDATES = ['item_db2_re', 'item_db2'];
+const ITEM_SPLIT_SUFFIXES = ['usable', 'equip', 'etc'];
+const ITEM_SPLIT_PREFIXES = ['item_db_re', 'item_db'];
+const ITEM_MONOLITH_CANDIDATES = ['item_db_re', 'item_db'];
 
 function pickTable(tableSet, envValue, candidates, required) {
     if (envValue === 'none') return null;
@@ -94,22 +97,55 @@ function pickTable(tableSet, envValue, candidates, required) {
     return null;
 }
 
+/** rAthena yaml2sql stores renewal items in item_db_re_{usable,equip,etc}, not item_db_re. */
+function detectItemBaseTables(tableSet) {
+    const envTable = process.env.ITEM_TABLE;
+    if (envTable === 'none') return [];
+    if (envTable) {
+        if (tableSet.has(envTable)) return [envTable];
+        console.warn(`Tabla ITEM_TABLE="${envTable}" no existe en la base de datos`);
+        return [];
+    }
+
+    for (const prefix of ITEM_SPLIT_PREFIXES) {
+        const splitTables = ITEM_SPLIT_SUFFIXES
+            .map((suffix) => `${prefix}_${suffix}`)
+            .filter((name) => tableSet.has(name));
+        if (splitTables.length > 0) return splitTables;
+    }
+
+    for (const name of ITEM_MONOLITH_CANDIDATES) {
+        if (tableSet.has(name)) return [name];
+    }
+    return [];
+}
+
+function unionSelectSql(tables) {
+    if (tables.length === 0) {
+        throw new Error('NO_ITEM_TABLES');
+    }
+    if (tables.length === 1) {
+        return `SELECT * FROM ${tables[0]}`;
+    }
+    return tables.map((table) => `SELECT * FROM ${table}`).join(' UNION ALL ');
+}
+
 export async function initializeGameDb() {
     const rows = await query('SHOW TABLES');
     const tableSet = new Set(rows.map((row) => Object.values(row)[0]));
 
     TABLES.MOB = pickTable(tableSet, process.env.MOB_TABLE, MOB_TABLE_CANDIDATES, true);
     TABLES.MOB2 = pickTable(tableSet, process.env.MOB2_TABLE, MOB2_TABLE_CANDIDATES, false);
-    TABLES.ITEM = pickTable(tableSet, process.env.ITEM_TABLE, ITEM_TABLE_CANDIDATES, true);
+    TABLES.ITEM_BASES = detectItemBaseTables(tableSet);
     TABLES.ITEM2 = pickTable(tableSet, process.env.ITEM2_TABLE, ITEM2_TABLE_CANDIDATES, false);
 
     mobDataAvailable = TABLES.MOB !== null;
-    itemDataAvailable = TABLES.ITEM !== null;
+    itemDataAvailable = TABLES.ITEM_BASES.length > 0;
 
     console.log('Tablas de juego detectadas:', {
         mob: TABLES.MOB,
         mob2: TABLES.MOB2,
-        item: TABLES.ITEM,
+        itemBases: TABLES.ITEM_BASES,
         item2: TABLES.ITEM2
     });
 
@@ -121,7 +157,8 @@ export async function initializeGameDb() {
     }
 
     if (!itemDataAvailable) {
-        console.warn('Sin tabla de objetos (item_db_re / item_db). /items no funcionará.');
+        console.warn('Sin tablas de objetos (item_db_re_* / item_db). /items no funcionará.');
+        console.warn('Ejecuta yaml2sql en rathena e importa: item_db_re_usable.sql, item_db_re_equip.sql, item_db_re_etc.sql');
     }
 }
 
@@ -137,6 +174,13 @@ export function mobUnavailableError() {
     return {
         error: 'Datos de monstruos no disponibles',
         hint: 'Importa mob_db_re en MariaDB: mysql -u USER -p rathena < rathena/sql-files/mob_db_re.sql'
+    };
+}
+
+export function itemUnavailableError() {
+    return {
+        error: 'Datos de objetos no disponibles',
+        hint: 'En rathena: ./yaml2sql, luego importa item_db_re_usable.sql, item_db_re_equip.sql, item_db_re_etc.sql (y item_db2_re.sql si aplica)'
     };
 }
 
@@ -160,10 +204,19 @@ export function effectiveMobsSql(alias = 'm') {
 }
 
 export function effectiveItemsSql(alias = 'i') {
-    if (!TABLES.ITEM) {
+    if (TABLES.ITEM_BASES.length === 0) {
         throw new Error('ITEM_TABLE_NOT_CONFIGURED');
     }
-    return mergedTableSql(TABLES.ITEM, TABLES.ITEM2, alias);
+    const baseSql = `(${unionSelectSql(TABLES.ITEM_BASES)})`;
+    if (!TABLES.ITEM2) {
+        return `${baseSql} AS ${alias}`;
+    }
+    return `(
+        SELECT * FROM ${baseSql} base
+        WHERE base.id NOT IN (SELECT id FROM ${TABLES.ITEM2})
+        UNION ALL
+        SELECT * FROM ${TABLES.ITEM2}
+    ) AS ${alias}`;
 }
 
 /** rAthena stores account bank zeny in acc_reg_num, not account_data (Hercules). */
