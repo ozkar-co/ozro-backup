@@ -5,7 +5,7 @@ import { query } from '../services/mariadb.js';
 import os from 'os';
 import mobsRouter from './routes/mobs.js';
 import itemsRouter from './routes/items.js';
-import { BANK_VAULT_KEY, bankVaultValueSql, cardExistsSql } from './services/gameDb.js';
+import { BANK_VAULT_KEY, bankVaultValueSql, cardCollectorDistinctSql, cardCollectorTotalSql } from './services/gameDb.js';
 
 const app = express();
 const port = process.env.API_PORT || 3001;
@@ -320,7 +320,6 @@ app.get('/rankings/accounts', async (req, res) => {
             4093, 4054, 4047
         ];
         const bossCardsStr = bossCardIds.join(',');
-        const cardCheck = cardExistsSql('ai.item_id');
 
         const rankings = await query(`
             WITH AccountItems AS (
@@ -369,20 +368,9 @@ app.get('/rankings/accounts', async (req, res) => {
                         WHERE c.account_id = l.account_id
                         AND c.delete_date = 0
                     ) + ${bankVaultValueSql('l.account_id')} AS CHAR) as total_zeny,
-                    -- Total de cartas
-                    CAST((
-                        SELECT COALESCE(SUM(amount), 0)
-                        FROM AccountItems ai
-                        WHERE ai.account_id = l.account_id
-                        AND ${cardCheck}
-                    ) AS CHAR) as total_cards,
-                    -- Total de cartas distintas
-                    CAST((
-                        SELECT COUNT(DISTINCT ai.item_id)
-                        FROM AccountItems ai
-                        WHERE ai.account_id = l.account_id
-                        AND ${cardCheck}
-                    ) AS CHAR) as total_cards_distinct,
+                    -- Cartas registradas en el Archivista (Card Collector)
+                    CAST(${cardCollectorTotalSql('l.account_id')} AS CHAR) as total_cards,
+                    CAST(${cardCollectorDistinctSql('l.account_id')} AS CHAR) as total_cards_distinct,
                     -- Total de cartas MVP
                     CAST((
                         SELECT COALESCE(SUM(amount), 0)

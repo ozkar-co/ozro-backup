@@ -179,6 +179,37 @@ export function bankVaultValueSql(accountIdExpr) {
     ), 0)`;
 }
 
+/** Card Collector (card_collector.txt) stores progress in acc_reg_num account vars. */
+export const CARD_COLLECTOR_CATEGORIES = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+    'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y', 'Z', 'BOSS', 'MVP'
+];
+
+const CARD_CT_KEYS_SQL = CARD_COLLECTOR_CATEGORIES
+    .map((code) => `'#CARD_CT_${code}'`)
+    .join(', ');
+
+/** Sum of registered cards per category (#CARD_CT_*), matches NPC "Ver mi progreso". */
+export function cardCollectorTotalSql(accountIdExpr) {
+    return `COALESCE((
+        SELECT SUM(ar.value) FROM acc_reg_num ar
+        WHERE ar.account_id = ${accountIdExpr}
+        AND ar.\`key\` IN (${CARD_CT_KEYS_SQL})
+        AND ar.\`index\` = 0
+    ), 0)`;
+}
+
+/** Distinct cards documented with the Archivista (#CARD_SEEN_<id> = 1). */
+export function cardCollectorDistinctSql(accountIdExpr) {
+    return `COALESCE((
+        SELECT COUNT(*) FROM acc_reg_num ar
+        WHERE ar.account_id = ${accountIdExpr}
+        AND ar.\`key\` LIKE '#CARD_SEEN\\_%'
+        AND ar.\`index\` = 0
+        AND ar.value = 1
+    ), 0)`;
+}
+
 /** Card items in renewal item_db use type = 'Card' (not numeric type = 6). */
 export function cardExistsSql(itemIdExpr) {
     if (!itemDataAvailable) {
