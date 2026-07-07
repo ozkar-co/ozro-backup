@@ -42,6 +42,11 @@ ventas
 
 Iniciar el servidor:
 ```bash
+./run.sh
+```
+
+Alternativa directa:
+```bash
 npm start
 ```
 

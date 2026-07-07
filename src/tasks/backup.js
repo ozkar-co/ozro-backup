@@ -129,6 +129,9 @@ async function performBackup(isFull = false) {
                 backupCount++;
             } catch (error) {
                 console.error(`Error al realizar backup de ${table}:`, error);
+                if (error.code === 'ER_CRASHED_ON_USAGE') {
+                    console.error(`  → Reparar: mysql -u USER -p -e "REPAIR TABLE \\\`${table}\\\`;" rathena`);
+                }
                 if (error instanceof TypeError && error.message.includes('BigInt')) {
                     console.error('Error de BigInt detectado, asegúrate de que los datos estén siendo procesados correctamente');
                 }

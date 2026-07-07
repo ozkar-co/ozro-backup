@@ -1,7 +1,15 @@
 import { Router } from 'express';
 import { getMobById, getMobMeta, searchMobs } from '../services/mobQuery.js';
+import { isMobDataAvailable, mobUnavailableError } from '../services/gameDb.js';
 
 const router = Router();
+
+router.use((req, res, next) => {
+    if (!isMobDataAvailable()) {
+        return res.status(503).json(mobUnavailableError());
+    }
+    next();
+});
 
 router.get('/meta', async (req, res) => {
     try {

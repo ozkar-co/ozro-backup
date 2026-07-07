@@ -3,6 +3,7 @@ import { getMobsDroppingItem } from './mobQuery.js';
 import {
     effectiveMobsSql,
     effectiveItemsSql,
+    isMobDataAvailable,
     mobDropColumns,
     parsePagination,
     parseCsv,
@@ -216,7 +217,9 @@ export async function getItemById(id) {
     if (rows.length === 0) return null;
 
     const item = mapItemDetail(rows[0]);
-    item.droppedBy = await getMobsDroppingItem(rows[0].name_aegis);
+    item.droppedBy = isMobDataAvailable()
+        ? await getMobsDroppingItem(rows[0].name_aegis)
+        : [];
     return item;
 }
 

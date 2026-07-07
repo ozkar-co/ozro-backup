@@ -1,17 +1,14 @@
 import 'dotenv/config';
 import { startAPI } from './api/server.js';
 import { initializeMariaDB } from './services/mariadb.js';
+import { initializeGameDb } from './api/services/gameDb.js';
 import { initializeBackupTask } from './tasks/backup.js';
 
 async function main() {
     try {
-        // Inicializar conexión a base de datos
         await initializeMariaDB();
-
-        // Iniciar tarea programada de backup
+        await initializeGameDb();
         await initializeBackupTask();
-
-        // Iniciar API
         await startAPI();
 
         console.log('Todos los servicios iniciados correctamente');

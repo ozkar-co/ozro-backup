@@ -1,9 +1,14 @@
+import { query } from '../../services/mariadb.js';
+
 export const TABLES = {
-    MOB: 'mob_db_re',
-    MOB2: 'mob_db2_re',
-    ITEM: 'item_db_re',
-    ITEM2: 'item_db2_re'
+    MOB: null,
+    MOB2: null,
+    ITEM: null,
+    ITEM2: null
 };
+
+let mobDataAvailable = false;
+let itemDataAvailable = false;
 
 export const MOB_ELEMENTS = [
     'Neutral', 'Water', 'Earth', 'Fire', 'Wind',
@@ -72,22 +77,93 @@ export const JOB_COLUMNS = {
 const NORMAL_DROP_COUNT = 10;
 const MVP_DROP_COUNT = 3;
 
-export function effectiveMobsSql(alias = 'm') {
+const MOB_TABLE_CANDIDATES = ['mob_db_re', 'mob_db'];
+const MOB2_TABLE_CANDIDATES = ['mob_db2_re', 'mob_db2'];
+const ITEM_TABLE_CANDIDATES = ['item_db_re', 'item_db'];
+const ITEM2_TABLE_CANDIDATES = ['item_db2_re', 'item_db2'];
+
+function pickTable(tableSet, envValue, candidates, required) {
+    if (envValue === 'none') return null;
+    if (envValue && tableSet.has(envValue)) return envValue;
+    if (envValue && required) {
+        console.warn(`Tabla configurada "${envValue}" no existe en la base de datos`);
+    }
+    for (const name of candidates) {
+        if (tableSet.has(name)) return name;
+    }
+    return null;
+}
+
+export async function initializeGameDb() {
+    const rows = await query('SHOW TABLES');
+    const tableSet = new Set(rows.map((row) => Object.values(row)[0]));
+
+    TABLES.MOB = pickTable(tableSet, process.env.MOB_TABLE, MOB_TABLE_CANDIDATES, true);
+    TABLES.MOB2 = pickTable(tableSet, process.env.MOB2_TABLE, MOB2_TABLE_CANDIDATES, false);
+    TABLES.ITEM = pickTable(tableSet, process.env.ITEM_TABLE, ITEM_TABLE_CANDIDATES, true);
+    TABLES.ITEM2 = pickTable(tableSet, process.env.ITEM2_TABLE, ITEM2_TABLE_CANDIDATES, false);
+
+    mobDataAvailable = TABLES.MOB !== null;
+    itemDataAvailable = TABLES.ITEM !== null;
+
+    console.log('Tablas de juego detectadas:', {
+        mob: TABLES.MOB,
+        mob2: TABLES.MOB2,
+        item: TABLES.ITEM,
+        item2: TABLES.ITEM2
+    });
+
+    if (!mobDataAvailable) {
+        console.warn(
+            'Sin tabla de monstruos (mob_db_re / mob_db). /mobs no funcionará hasta importarla.'
+        );
+        console.warn('Importar: mysql -u USER -p rathena < rathena/sql-files/mob_db_re.sql');
+    }
+
+    if (!itemDataAvailable) {
+        console.warn('Sin tabla de objetos (item_db_re / item_db). /items no funcionará.');
+    }
+}
+
+export function isMobDataAvailable() {
+    return mobDataAvailable;
+}
+
+export function isItemDataAvailable() {
+    return itemDataAvailable;
+}
+
+export function mobUnavailableError() {
+    return {
+        error: 'Datos de monstruos no disponibles',
+        hint: 'Importa mob_db_re en MariaDB: mysql -u USER -p rathena < rathena/sql-files/mob_db_re.sql'
+    };
+}
+
+function mergedTableSql(baseTable, overlayTable, alias) {
+    if (!overlayTable) {
+        return `(SELECT * FROM ${baseTable}) AS ${alias}`;
+    }
     return `(
-        SELECT * FROM ${TABLES.MOB}
-        WHERE id NOT IN (SELECT id FROM ${TABLES.MOB2})
+        SELECT * FROM ${baseTable}
+        WHERE id NOT IN (SELECT id FROM ${overlayTable})
         UNION ALL
-        SELECT * FROM ${TABLES.MOB2}
+        SELECT * FROM ${overlayTable}
     ) AS ${alias}`;
 }
 
+export function effectiveMobsSql(alias = 'm') {
+    if (!TABLES.MOB) {
+        throw new Error('MOB_TABLE_NOT_CONFIGURED');
+    }
+    return mergedTableSql(TABLES.MOB, TABLES.MOB2, alias);
+}
+
 export function effectiveItemsSql(alias = 'i') {
-    return `(
-        SELECT * FROM ${TABLES.ITEM}
-        WHERE id NOT IN (SELECT id FROM ${TABLES.ITEM2})
-        UNION ALL
-        SELECT * FROM ${TABLES.ITEM2}
-    ) AS ${alias}`;
+    if (!TABLES.ITEM) {
+        throw new Error('ITEM_TABLE_NOT_CONFIGURED');
+    }
+    return mergedTableSql(TABLES.ITEM, TABLES.ITEM2, alias);
 }
 
 export function mobDropColumns() {
@@ -101,7 +177,7 @@ export function mobDropColumns() {
     return columns;
 }
 
-export function mobDropMatchSql(mobAlias, itemAegisParam) {
+export function mobDropMatchSql(mobAlias) {
     const dropColumns = mobDropColumns();
     const conditions = dropColumns.map((col) => `${mobAlias}.${col.item} = ?`);
     return `(${conditions.join(' OR ')})`;
