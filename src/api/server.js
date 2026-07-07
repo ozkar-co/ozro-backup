@@ -5,7 +5,7 @@ import { query } from '../services/mariadb.js';
 import os from 'os';
 import mobsRouter from './routes/mobs.js';
 import itemsRouter from './routes/items.js';
-import { BANK_VAULT_KEY, bankVaultValueSql, cardCollectorDistinctSql, cardCollectorTotalSql } from './services/gameDb.js';
+import { BANK_VAULT_KEY, bankVaultValueSql, cardCollectorDistinctSql, cardCollectorTotalSql, excludeInternalAccountsSql, statsPlayerAccountSql, statsPlayerAccountWhereClause } from './services/gameDb.js';
 
 const app = express();
 const port = process.env.API_PORT || 3001;
@@ -137,8 +137,8 @@ app.get('/players', async (req, res) => {
 // Get server statistics
 app.get('/stats', async (req, res) => {
     try {
-        // Total de cuentas (excluyendo admins)
-        const totalResult = await query('SELECT COUNT(*) as count FROM login WHERE group_id = 0');
+        // Total de cuentas (excluyendo admins y cuentas internas)
+        const totalResult = await query(`SELECT COUNT(*) as count FROM login WHERE ${statsPlayerAccountWhereClause()}`);
         const totalAccounts = totalResult[0].count;
 
         // Cuentas activas en la última semana
@@ -147,7 +147,7 @@ app.get('/stats', async (req, res) => {
         const formattedDate = weekAgo.toISOString().slice(0, 19).replace('T', ' ');
         
         const activeResult = await query(
-            'SELECT COUNT(*) as count FROM login WHERE lastlogin >= ? AND group_id = 0',
+            `SELECT COUNT(*) as count FROM login WHERE lastlogin >= ? AND ${statsPlayerAccountWhereClause()}`,
             [formattedDate]
         );
         const activeLastWeek = activeResult[0].count;
@@ -157,7 +157,7 @@ app.get('/stats', async (req, res) => {
             SELECT COUNT(*) as count 
             FROM \`char\` c
             JOIN login l ON c.account_id = l.account_id
-            WHERE c.delete_date = 0 AND l.group_id = 0
+            WHERE c.delete_date = 0 AND ${statsPlayerAccountSql('l')}
         `);
         const totalCharacters = totalCharsResult[0].count;
 
@@ -169,7 +169,7 @@ app.get('/stats', async (req, res) => {
             JOIN login l ON c.account_id = l.account_id
             WHERE c.delete_date = 0 
             AND c.last_login >= ?
-            AND l.group_id = 0
+            AND ${statsPlayerAccountSql('l')}
         `, [dayAgo]);
         const activeLast24h = activeCharsResult[0].count;
 
@@ -181,13 +181,13 @@ app.get('/stats', async (req, res) => {
             FROM \`char\` c
             JOIN login l ON c.account_id = l.account_id
             WHERE c.delete_date = 0
-            AND l.group_id = 0
+            AND ${statsPlayerAccountSql('l')}
             AND c.base_level = (
                 SELECT MAX(ch.base_level)
                 FROM \`char\` ch
                 JOIN login lg ON ch.account_id = lg.account_id
                 WHERE ch.delete_date = 0
-                AND lg.group_id = 0
+                AND ${statsPlayerAccountSql('lg')}
             )
             GROUP BY c.base_level
         `);
@@ -198,7 +198,7 @@ app.get('/stats', async (req, res) => {
             FROM \`char\` c
             JOIN login l ON c.account_id = l.account_id
             WHERE c.delete_date = 0
-            AND l.group_id = 0
+            AND ${statsPlayerAccountSql('l')}
         `);
 
         const highestLevel = maxLevelStats[0]?.maxLevel || 0;
@@ -218,7 +218,7 @@ app.get('/stats', async (req, res) => {
             FROM \`char\` c
             JOIN login l ON c.account_id = l.account_id
             WHERE c.delete_date = 0
-            AND l.group_id = 0
+            AND ${statsPlayerAccountSql('l')}
             GROUP BY c.account_id
         `);
 
@@ -230,7 +230,7 @@ app.get('/stats', async (req, res) => {
             JOIN login l ON ar.account_id = l.account_id
             WHERE ar.\`key\` = ?
             AND ar.\`index\` = 0
-            AND l.group_id = 0
+            AND ${statsPlayerAccountSql('l')}
         `, [BANK_VAULT_KEY]);
 
         const bankZenyMap = new Map();
@@ -394,6 +394,7 @@ app.get('/rankings/accounts', async (req, res) => {
                     ) AS CHAR) as total_diamonds
                 FROM login l
                 WHERE l.group_id != 99
+                AND ${excludeInternalAccountsSql('l')}
             )
             SELECT 
                 account_id,

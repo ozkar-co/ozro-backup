@@ -222,6 +222,24 @@ export function effectiveItemsSql(alias = 'i') {
 /** rAthena stores account bank zeny in acc_reg_num, not account_data (Hercules). */
 export const BANK_VAULT_KEY = '#BANKVAULT';
 
+/** Service accounts excluded from player-facing stats (e.g. internal monitoring). */
+export const INTERNAL_ACCOUNT_USERIDS = ['S1'];
+
+const internalAccountsSqlList = INTERNAL_ACCOUNT_USERIDS.map((id) => `'${id}'`).join(', ');
+
+/** Player accounts for /stats: non-admin, excluding internal service accounts. */
+export function statsPlayerAccountSql(loginAlias = 'l') {
+    return `${loginAlias}.group_id = 0 AND ${loginAlias}.userid NOT IN (${internalAccountsSqlList})`;
+}
+
+export function statsPlayerAccountWhereClause() {
+    return `group_id = 0 AND userid NOT IN (${internalAccountsSqlList})`;
+}
+
+export function excludeInternalAccountsSql(loginAlias = 'l') {
+    return `${loginAlias}.userid NOT IN (${internalAccountsSqlList})`;
+}
+
 export function bankVaultValueSql(accountIdExpr) {
     return `COALESCE((
         SELECT ar.value FROM acc_reg_num ar
