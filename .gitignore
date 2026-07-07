@@ -55,6 +55,10 @@ dist/
 build/
 out/
 
+
+# GRF tool cache
+.cache/
+
 # Archivos de cobertura de pruebas
 coverage/
 

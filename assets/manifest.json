@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-07T22:01:07.645Z",
+  "items": {
+    "icons": {
+      "pages": [
+        {
+          "page": 0,
+          "image": "items/icons/atlas_0.webp",
+          "mapping": "items/icons/atlas_0.json",
+          "count": 7225
+        },
+        {
+          "page": 1,
+          "image": "items/icons/atlas_1.webp",
+          "mapping": "items/icons/atlas_1.json",
+          "count": 6776
+        }
+      ]
+    },
+    "illustrations": {
+      "pages": [
+        {
+          "page": 0,
+          "image": "items/illustrations/atlas_0.webp",
+          "mapping": "items/illustrations/atlas_0.json",
+          "count": 2120,
+          "width": 4027,
+          "height": 4039
+        },
+        {
+          "page": 1,
+          "image": "items/illustrations/atlas_1.webp",
+          "mapping": "items/illustrations/atlas_1.json",
+          "count": 2120,
+          "width": 4027,
+          "height": 4039
+        },
+        {
+          "page": 2,
+          "image": "items/illustrations/atlas_2.webp",
+          "mapping": "items/illustrations/atlas_2.json",
+          "count": 2120,
+          "width": 4027,
+          "height": 4039
+        },
+        {
+          "page": 3,
+          "image": "items/illustrations/atlas_3.webp",
+          "mapping": "items/illustrations/atlas_3.json",
+          "count": 2120,
+          "width": 4027,
+          "height": 4039
+        },
+        {
+          "page": 4,
+          "image": "items/illustrations/atlas_4.webp",
+          "mapping": "items/illustrations/atlas_4.json",
+          "count": 2120,
+          "width": 4027,
+          "height": 4039
+        },
+        {
+          "page": 5,
+          "image": "items/illustrations/atlas_5.webp",
+          "mapping": "items/illustrations/atlas_5.json",
+          "count": 2120,
+          "width": 4027,
+          "height": 4039
+        },
+        {
+          "page": 6,
+          "image": "items/illustrations/atlas_6.webp",
+          "mapping": "items/illustrations/atlas_6.json",
+          "count": 1281,
+          "width": 3182,
+          "height": 3126
+        }
+      ]
+    }
+  },
+  "mobs": {
+    "sprites": {
+      "pages": [
+        {
+          "page": 0,
+          "image": "mobs/sprites/atlas_0.webp",
+          "mapping": "mobs/sprites/atlas_0.json",
+          "count": 1048,
+          "width": 3366,
+          "height": 3418
+        }
+      ]
+    }
+  }
+}

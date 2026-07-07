@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import net from 'net';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { query } from '../services/mariadb.js';
 import os from 'os';
 import mobsRouter from './routes/mobs.js';
@@ -38,6 +40,21 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const assetsPath = process.env.ASSETS_PATH
+  ? path.resolve(process.env.ASSETS_PATH)
+  : path.resolve(__dirname, '../../assets');
+
+app.use('/assets', express.static(assetsPath, {
+  maxAge: process.env.NODE_ENV === 'production' ? '7d' : 0,
+  immutable: process.env.NODE_ENV === 'production',
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('manifest.json') || filePath.endsWith('build-report.json')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 app.use('/mobs', mobsRouter);
 app.use('/items', itemsRouter);

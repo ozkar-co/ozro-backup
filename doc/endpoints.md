@@ -4,7 +4,18 @@ API REST para consultar información de la base de datos del servidor.
 
 Base URL: `http://localhost:3001` (producción: `https://ozro-api.ozkr.net`)
 
-## GET /health
+## GET /assets/*
+
+Archivos estáticos de imágenes del juego (atlases WebP + manifest JSON). Generados localmente con `ozro-cli` → `npm run assets`.
+
+- `GET /assets/manifest.json` — índice de atlases (iconos, ilustraciones, sprites)
+- `GET /assets/items/icons/atlas_N.webp` — atlas de iconos
+- `GET /assets/items/illustrations/atlas_N.webp` — atlas de ilustraciones
+- `GET /assets/mobs/sprites/atlas_N.webp` — atlas de sprites de monstruos
+
+Cada atlas tiene un `.json` hermano con coordenadas `{ "itemId": { "x", "y", "w", "h" } }`.
+
+---
 
 Health check del servicio.
 
